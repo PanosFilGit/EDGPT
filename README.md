@@ -321,27 +321,6 @@ Using a **private repository is recommended** when possible.
 
 ---
 
-# 🧑‍💻 Running From Source
-
-The packaged Windows release is recommended for normal users.
-
-Developers who want to run EDGPT from source can clone the repository and create a Python virtual environment.
-
-Example:
-
-```powershell
-git clone https://github.com/PanosFilGit/EDGPT.git
-cd EDGPT
-
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-
-.\.venv\Scripts\python.exe launcher.py
-```
-
-Additional integration components may be required depending on which MCP/tunnel configuration you use.
-
----
 
 # 🧪 Alpha Status
 

@@ -1,392 +1,170 @@
-# 🚀 EDGPT v0.1 Alpha
+# EDGPT 0.2.0 Beta
 
-**Live Elite Dangerous context for AI assistants via MCP — including ChatGPT.**
+**A universal Elite Dangerous → AI bridge.**
 
-EDGPT is an unofficial community tool that connects **Elite Dangerous** live game data with AI assistants.
+EDGPT does not provide an AI chat UI. It reads Elite Dangerous data on your Windows PC and exposes that data to AI clients through **MCP** or an optional **GitHub Relay**.
 
-It reads your local Elite Dangerous Journal, Status and NavRoute files and makes that information available through **MCP (Model Context Protocol)** and, optionally, a **GitHub Relay**.
+```text
+Elite Dangerous
+      ↓
+    EDGPT
+   ↙     ↘
+ MCP   GitHub Relay
+  ↓         ↓
+Any compatible AI client
+```
 
-> ⚠️ **Alpha software:** EDGPT is currently under active development. Expect bugs and changes.
+## What it exposes
 
----
+EDGPT can make the following available to an AI client:
 
-## ✨ What can EDGPT do?
+- current system/location and route
+- current ship and complete `Loadout` data
+- module engineering data
+- Elite live JSON sidecars such as `Status.json`, `NavRoute.json`, `Cargo.json`, `Backpack.json`, `ShipLocker.json`, `ModulesInfo.json`, `Market.json`, `Outfitting.json`, and `Shipyard.json`
+- recent raw Journal events
+- **all historical `Journal.*.log` files** through a local SQLite history index
+- raw historical search and pagination
+- optional Full Context GitHub mirror for AI clients that cannot reach local MCP
 
-EDGPT can provide AI assistants with live Elite Dangerous context, including:
+EDGPT preserves raw Frontier journal events so useful event types remain accessible even when EDGPT does not yet have a special parser for them.
 
-- 🌌 Current star system
-- 🪐 Current body
-- 🛰️ Current station and docking state
-- 🚀 Current ship
-- ⛽ Fuel and ship information
-- 🗺️ Current plotted navigation route
-- 📡 Elite Dangerous `Status.json`
-- 📖 Recent Journal events
+## Fastest setup
 
-This allows an AI assistant to answer questions using your current game state.
+### 1. Install
 
-For example:
+Download and run `EDGPT-Setup-0.2.0-beta.exe` from Releases.
 
-> **"Where am I right now?"**
+No Python installation is required for the packaged Windows build.
 
-> **"What ship am I flying?"**
-
-> **"Check my current route."**
-
-> **"What did I just scan?"**
-
----
-
-# 📦 Installation
-
-## Option 1 — Windows Installer (Recommended)
-
-Download:
-
-`EDGPT-Setup.exe`
-
-from the latest GitHub Release.
-
-Run the installer, then launch **EDGPT**.
-
-Normal users should not need to install Python or create a virtual environment.
-
----
-
-## Option 2 — Portable
-
-Download:
-
-`EDGPT-Portable.zip`
-
-Extract the **entire folder**, then run:
-
-`EDGPT.exe`
-
-Do not move only `EDGPT.exe` out of the folder because EDGPT requires the accompanying files.
-
----
-
-# 🎮 Elite Dangerous Setup
-
-By default, EDGPT automatically looks for Elite Dangerous data at:
+EDGPT automatically looks for Elite data at:
 
 ```text
 %USERPROFILE%\Saved Games\Frontier Developments\Elite Dangerous
 ```
 
-For a normal Elite Dangerous installation, no manual configuration should be required.
+For a standard installation, open EDGPT and the core bridge starts automatically.
 
-You can change the Journal location from:
+### 2. Connect an AI
 
-**EDGPT → Settings → Elite Journal**
-
----
-
-# 🤖 MCP Integration
-
-EDGPT includes an MCP server for providing live Elite Dangerous information to compatible AI clients.
-
-The local MCP endpoint is:
+If your AI client supports local Streamable HTTP MCP, connect it to:
 
 ```text
 http://127.0.0.1:8000/mcp
 ```
 
-Available tools currently include:
+That is the simplest mode. No GitHub account, API key, or cloud tunnel is required.
+
+If your AI cannot access local MCP but can access GitHub, use **GitHub Relay** instead. See `QUICKSTART.md`.
+
+### 3. Click CHECK
+
+A healthy core installation should report:
+
+```text
+OK  Elite journal folder
+OK  State server
+OK  MCP server
+```
+
+Current state is also visible locally at:
+
+```text
+http://127.0.0.1:8080/state
+```
+
+## MCP tools
 
 ```text
 get_elite_state
+get_full_loadout
 get_navroute
 get_status
+list_elite_live_files
+get_elite_live_file
 get_recent_events
+search_journal
+get_latest_journal_event
+get_history_summary
+get_raw_history_page
 ```
 
----
+## Full Context history
 
-## ChatGPT / OpenAI
+On startup, EDGPT indexes historical Elite journals into a local SQLite database. The first run may take longer; later runs only add new events.
 
-EDGPT can use the **OpenAI Secure MCP Tunnel** to make the local EDGPT MCP server available to supported OpenAI/ChatGPT environments.
+The AI does **not** receive every historical event in every prompt. MCP tools retrieve only the relevant history when needed, while raw events remain available.
 
-Open:
+## GitHub Relay
 
-**EDGPT → Settings → OpenAI MCP**
+GitHub Relay is optional and **disabled by default**.
 
-and configure your own OpenAI MCP credentials and tunnel.
-
-Your credentials are not included with EDGPT.
-
-> OpenAI product availability and MCP support may depend on your account, plan and current OpenAI features.
-
----
-
-# 🤖 Other MCP-Compatible AI Clients
-
-EDGPT is **not limited to ChatGPT**.
-
-Any MCP-compatible AI client that supports EDGPT's MCP transport may potentially connect to:
-
-```text
-http://127.0.0.1:8000/mcp
-```
-
-How the connection is configured depends on the AI client.
-
-The OpenAI Secure MCP Tunnel is specifically an OpenAI integration and is not required for clients that can connect directly to the local MCP server.
-
----
-
-# 🐙 GitHub Relay
-
-EDGPT also provides an **optional GitHub Relay**.
-
-This is useful for AI assistants that can read a GitHub repository but cannot directly access your local MCP server.
-
-The relay periodically uploads your Elite Dangerous state as:
+When enabled, EDGPT can publish:
 
 ```text
 elite_state.json
+edgpt_manifest.json
+edgpt_raw/journals/...
+edgpt_raw/live/...
 ```
 
-to a GitHub repository that **you control**.
+to a repository you control.
 
-GitHub Relay is **disabled by default**.
+**Use a private repository.** Full Context journals can contain detailed commander location and activity history.
 
----
+## OpenAI tunnel support
 
-## 1. Create a State Repository
+EDGPT's local MCP server is vendor-neutral.
 
-Go to GitHub and create a new repository.
+Optional OpenAI Secure MCP Tunnel integration can be enabled from Settings, but it is **disabled by default** and the public EDGPT build does not bundle third-party tunnel executables. Availability and account-side setup are controlled by the relevant provider and can change independently of EDGPT.
 
-A simple name is:
+## Privacy and security
+
+- EDGPT does not need your Frontier password.
+- Core local MCP runs on `127.0.0.1` only.
+- GitHub Relay is opt-in.
+- Credentials entered through EDGPT are protected locally with Windows DPAPI.
+- `data/`, secret `*.bin` files, and history databases must never be committed or packaged.
+- Public release builds intentionally exclude third-party tunnel executables unless redistribution rights are separately verified.
+
+Read `SECURITY.md` before publishing logs or enabling Full Context GitHub Relay.
+
+## Building from source
+
+Developer requirements:
+
+- Windows 10/11 x64
+- Python
+- Inno Setup 6 or 7 for the installer
+
+Run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-release.ps1
+```
+
+The release builder produces:
 
 ```text
-EDGPT-State
+release/installer/EDGPT-Setup-0.2.0-beta.exe
+release/EDGPT-Portable.zip
+release/SHA256SUMS.txt
 ```
 
-For example:
+It also fails the build if runtime secrets/data are found in the staged release.
 
-```text
-yourname/EDGPT-State
-```
+## Release status
 
-### Private vs Public
+0.2.0 is a **beta**. The bridge and Full Context path are functional, but stable `1.0` should wait until the installer and bridge modes have been tested on several independent Windows PCs.
 
-**Private is recommended** if your AI integration can access private GitHub repositories.
+See `RELEASE_CHECKLIST.md`.
 
-If the repository is public, anyone may be able to see the Elite Dangerous state uploaded by EDGPT, including information such as your current system.
+## Disclaimer
 
-When creating the repository, enable:
+EDGPT is an unofficial community project and is not affiliated with, endorsed by, or sponsored by Frontier Developments or OpenAI.
 
-**Add a README file**
+Elite Dangerous is a trademark of Frontier Developments. Third-party services and components are subject to their own licenses and terms.
 
-so that the `main` branch is created immediately.
+## License
 
----
-
-## 2. Create a GitHub Token
-
-Create a **fine-grained GitHub Personal Access Token**.
-
-For better security, restrict the token to only your:
-
-```text
-EDGPT-State
-```
-
-repository.
-
-Give it the repository permission:
-
-```text
-Contents: Read and write
-```
-
-EDGPT uses this permission to create and update the state file.
-
-> ⚠️ Never share your GitHub token or commit it to a repository.
-
----
-
-## 3. Configure EDGPT
-
-Open:
-
-**EDGPT → Settings → GitHub Relay**
-
-Enable GitHub Relay and enter:
-
-```text
-Repository: yourname/EDGPT-State
-Branch: main
-File: elite_state.json
-Token: YOUR TOKEN
-```
-
-Save your settings and start EDGPT.
-
-EDGPT will then create/update:
-
-```text
-elite_state.json
-```
-
-inside your repository.
-
----
-
-## 4. Connect Your AI
-
-Connect your AI assistant to GitHub using whatever GitHub integration that AI supports.
-
-Give it access to your:
-
-```text
-EDGPT-State
-```
-
-repository.
-
-The AI can then read:
-
-```text
-elite_state.json
-```
-
-as your current Elite Dangerous state.
-
-For example, you could ask:
-
-> **"Read my EDGPT-State repository and tell me where I am in Elite Dangerous."**
-
-or:
-
-> **"Check elite_state.json and tell me about my current ship and route."**
-
-Exactly how GitHub repositories are connected depends on the AI assistant being used.
-
----
-
-# 🔄 How It Works
-
-### MCP Mode
-
-```text
-Elite Dangerous
-       ↓
-Journal / Status / NavRoute
-       ↓
-      EDGPT
-       ↓
-  Local MCP Server
-       ↓
-MCP-Compatible AI Client
-```
-
-### GitHub Relay Mode
-
-```text
-Elite Dangerous
-       ↓
-      EDGPT
-       ↓
- elite_state.json
-       ↓
-Your GitHub Repository
-       ↓
-AI with GitHub access
-```
-
-Both methods can be used independently depending on your AI client and setup.
-
----
-
-# 🔐 Privacy & Security
-
-EDGPT reads Elite Dangerous files locally.
-
-EDGPT does **not** require your Frontier account password.
-
-OpenAI and GitHub credentials configured in EDGPT are stored locally using **Windows DPAPI encryption**.
-
-Sensitive configuration data is stored under EDGPT's local `data/` directory.
-
-The `data/` directory should **never be committed to GitHub**.
-
-GitHub Relay is optional and disabled by default.
-
-If you enable GitHub Relay, information contained in your EDGPT state file is uploaded to the GitHub repository you configure.
-
-Using a **private repository is recommended** when possible.
-
----
-
-
-# 🧪 Alpha Status
-
-EDGPT v0.1 is an **early public alpha**.
-
-Currently:
-
-- 🪟 Windows only
-- 🎮 Elite Dangerous journal/state integration
-- 🤖 MCP server
-- 🧠 ChatGPT/OpenAI MCP integration
-- 🐙 Optional GitHub Relay
-- 🔐 Local DPAPI credential encryption
-- 📦 Standalone Windows builds
-
-Things may change significantly before a stable release.
-
-Bug reports and contributions are welcome.
-
-When reporting an issue, **remove API keys, access tokens, usernames or other private information from screenshots and logs.**
-
----
-
-# 🗺️ Roadmap
-
-Possible future improvements include:
-
-- Easier first-run setup
-- More Elite Dangerous state information
-- More MCP tools
-- Better automatic configuration
-- Additional AI-client documentation
-- Improved error reporting
-- Automatic updates
-- Cross-platform support
-- Community integrations
-
----
-
-# 🤝 Contributing
-
-Contributions, testing and bug reports are welcome.
-
-If you find a problem, open a GitHub Issue with:
-
-- What you expected to happen
-- What actually happened
-- Your Windows version
-- Relevant EDGPT logs/errors
-
-Please remove all secrets and private information before posting logs.
-
----
-
-# ⚖️ Disclaimer
-
-EDGPT is an **unofficial community project**.
-
-It is not affiliated with, endorsed by, or sponsored by **Frontier Developments** or **OpenAI**.
-
-**Elite Dangerous** is a trademark of Frontier Developments.
-
-Third-party software, services and components used with EDGPT remain subject to their respective licenses and terms.
-
-Use EDGPT at your own risk.
-
----
-
-## o7 CMDR 🚀
+See `LICENSE`.

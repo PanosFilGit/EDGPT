@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+*.log
+build/
+dist/
+*.spec
+bin/launcher_secret.bin
+bin/github_token.bin
+bin/launcher_config.json
+release/
+
+# Runtime / secrets
+*.bin
+*.db
+*.db-shm
+*.db-wal
+
+# Release artifacts
+release/
+*.zip
+*.exe

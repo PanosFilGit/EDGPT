@@ -47,15 +47,36 @@ For a standard installation, open EDGPT and the core bridge starts automatically
 
 ### 2. Connect an AI
 
-If your AI client supports local Streamable HTTP MCP, connect it to:
+EDGPT runs a local Streamable HTTP MCP endpoint at:
 
 ```text
 http://127.0.0.1:8000/mcp
 ```
 
-That is the simplest mode. No GitHub account, API key, or cloud tunnel is required.
+If your AI client supports **local MCP directly**, it can connect to that endpoint.
 
-If your AI cannot access local MCP but can access GitHub, use **GitHub Relay** instead. See `QUICKSTART.md`.
+If you are using a **hosted/cloud AI client that cannot directly access `localhost`**, a secure tunnel or another supported MCP transport is required between EDGPT and the AI service.
+
+For **ChatGPT/OpenAI**, use OpenAI's official **Secure MCP Tunnel** with `tunnel-client` (`tunnel-client.exe` on Windows):
+
+```text
+Elite Dangerous
+      ↓
+    EDGPT
+      ↓
+Local MCP (127.0.0.1:8000/mcp)
+      ↓
+OpenAI Secure MCP Tunnel
+(tunnel-client.exe)
+      ↓
+ChatGPT / supported OpenAI client
+```
+
+`tunnel-client.exe` is an OpenAI component and is **not bundled with the public EDGPT release**. Download/install the official OpenAI tunnel client separately and configure it to forward EDGPT's local MCP endpoint.
+
+MCP itself is **not OpenAI-only**. Other compatible AI clients may support local MCP directly or provide their own secure/remote MCP transport. Check the connection requirements of the AI client you want to use.
+
+If your AI cannot use EDGPT through MCP but can access GitHub, use **GitHub Relay** instead. See `QUICKSTART.md`.
 
 ### 3. Click CHECK
 
@@ -112,11 +133,13 @@ to a repository you control.
 
 **Use a private repository.** Full Context journals can contain detailed commander location and activity history.
 
-## OpenAI tunnel support
+## OpenAI Secure MCP Tunnel
 
-EDGPT's local MCP server is vendor-neutral.
+EDGPT's MCP server is vendor-neutral. The OpenAI Secure MCP Tunnel is an optional transport specifically for connecting a local/private MCP server to supported OpenAI clients.
 
-Optional OpenAI Secure MCP Tunnel integration can be enabled from Settings, but it is **disabled by default** and the public EDGPT build does not bundle third-party tunnel executables. Availability and account-side setup are controlled by the relevant provider and can change independently of EDGPT.
+For ChatGPT/OpenAI setups that cannot access EDGPT's localhost endpoint directly, the official OpenAI `tunnel-client` (`tunnel-client.exe` on Windows) is required. EDGPT does not redistribute this third-party executable; obtain it from OpenAI and configure it separately.
+
+Availability and account-side setup are controlled by the relevant provider and can change independently of EDGPT.
 
 ## Privacy and security
 
